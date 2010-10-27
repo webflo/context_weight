@@ -1,0 +1,50 @@
+<?php
+// $Id$
+
+/**
+ * Implements hook_schema().
+ */
+function context_weight_schema() {
+  $schema = array();
+  
+  $schema['context_weight'] = array(
+    'description' => '',
+    'fields' => array(
+      'name' => array(
+        'description' => 'Name of the context group',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,),
+      'settings' => array(
+        'description' => '',
+        'type' => 'text',
+        'not null' => FALSE,),
+      ),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+  
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function context_weight_install() {
+  drupal_install_schema('context_weight');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function context_weight_uninstall() {
+  drupal_uninstall_schema('context_weight');
+}
+
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+<?php
+// $Id$
+/**
+ * @file context_disable_context.module
+ * TODO: Enter file description here.
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function context_weight_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#id'] == 'context-ui-editor') {
+    $form['buttons']['save']['#submit'][] = 'context_weight_context_ui_editor_submit';
+  }
+}
+
+/**
+ * Save handler for context_block_editor().
+ */
+function context_weight_context_ui_editor_submit(&$form, &$form_state) {
+  if (count($form_state['values']['contexts']) > 1) {
+    $context = array();
+    $group_name = array();
+
+    foreach ($form_state['values']['contexts'] as $name => $values) {
+      $context[$name] = context_ui_editor_process($values);
+      $group_name[] = $name;
+    }
+  
+    sort($group_name);
+    $record = new stdClass;
+    $record->name = implode(' ', $group_name); // unique identifyer for each group
+    $record->settings = serialize($context);
+    
+    if ($record->name == db_result(db_query("SELECT name FROM {context_weight} WHERE name = '%s'", $record->name))) {
+      drupal_write_record('context_weight', $record, 'name');
+    } else {
+      drupal_write_record('context_weight', $record);
+    }
+  }
+}
+
+/**
+ * Alter the context module
+ */
+function context_weight_page_alter() {
+  $context = context_get();
+
+  $group_name = array_keys($context['context']);
+  sort($group_name);
+    
+  $settings = db_result(db_query("SELECT settings FROM {context_weight} WHERE name = '%s'", implode(' ', $group_name)));
+  $settings = unserialize($settings);
+  
+  if (is_array($settings)) {
+    foreach($settings as $name => $value) {
+      $context['context'][$name]->reactions['block'] = $value->reactions['block'];
+      context_set('context', $name, $context['context'][$name]);
+    }
+  }
+}
